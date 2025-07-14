@@ -47,7 +47,7 @@ export default function (sequelize: Sequelize): typeof BookModel {
       stock_quantity: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 20, // default stock quantity for quick testing
+        defaultValue: 20, // i created a default stock quantity for quick testing
       },
       description: {
         type: DataTypes.STRING,

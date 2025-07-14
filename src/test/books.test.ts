@@ -5,7 +5,6 @@ import { App } from '@/app';
 import { CreateBookDto } from '@dtos/books.dto';
 import { BooksRoute } from '@routes/books.route';
 
-// Mock the auth middleware to always pass
 jest.mock('@middlewares/auth.middleware', () => ({
   AuthMiddleware: (req: any, res: any, next: any) => next(),
 }));
