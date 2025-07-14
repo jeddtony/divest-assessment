@@ -1,5 +1,6 @@
 import { Book } from '@interfaces/books.interface';
 import { DB } from '@database';
+import { CreateBookDto } from '@dtos/books.dto';
 
 class BookService {
   public books = DB.Books;
@@ -14,7 +15,7 @@ class BookService {
     return book;
   }
 
-  public async createBook(bookData: Book): Promise<Book> {
+  public async createBook(bookData: CreateBookDto): Promise<Book> {
     const book = await this.books.create(bookData);
     return book;
   }
