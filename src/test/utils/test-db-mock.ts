@@ -9,6 +9,11 @@ jest.mock('@database', () => ({
       update: jest.fn(),
       destroy: jest.fn(),
     },
+    Books: {
+      findAll: jest.fn(),
+      findByPk: jest.fn(),
+      create: jest.fn(),
+    },
     sequelize: {
       sync: jest.fn().mockResolvedValue(undefined),
       authenticate: jest.fn().mockResolvedValue(undefined),

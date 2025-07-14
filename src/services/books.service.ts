@@ -20,6 +20,15 @@ class BookService {
     return book;
   }
 
+  public async searchBooks(query: string): Promise<Book[]> {
+    const { Op } = require('sequelize');
+    const books = await this.books.findAll({
+      where: {
+        [Op.or]: [{ title: { [Op.like]: `%${query}%` } }, { author: { [Op.like]: `%${query}%` } }, { genre: { [Op.like]: `%${query}%` } }],
+      },
+    });
+    return books;
+  }
 }
 
 export default BookService;

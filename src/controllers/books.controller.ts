@@ -13,11 +13,9 @@ export class BooksController {
       let findAllBooksData: Book[];
 
       if (title || author || genre) {
-        // If any search parameters are provided, use search functionality
         const searchQuery = title || author || genre;
         findAllBooksData = await this.bookService.searchBooks(searchQuery as string);
       } else {
-        // If no search parameters, return all books
         findAllBooksData = await this.bookService.findAllBooks();
       }
 
@@ -47,17 +45,4 @@ export class BooksController {
     }
   };
 
-  public searchBooks = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { q } = req.query;
-      if (!q || typeof q !== 'string') {
-        res.status(400).json({ message: 'Search query is required' });
-        return;
-      }
-      const searchResults: Book[] = await this.bookService.searchBooks(q);
-      res.status(200).json({ data: searchResults, message: 'Search results' });
-    } catch (error) {
-      next(error);
-    }
-  };
 }
