@@ -44,6 +44,7 @@ export const BookSchema = {
   stock_quantity: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    defaultValue: 20, // default stock quantity for quick testing
   },
   description: {
     type: DataTypes.STRING,
