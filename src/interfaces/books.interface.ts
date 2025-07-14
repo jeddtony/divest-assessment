@@ -7,6 +7,6 @@ export interface Book {
   price: number;
   stock_quantity: number;
   description: string;
-  created_at: Date;
-  updated_at: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
