@@ -19,8 +19,12 @@ class OrderService {
     try {
       const shoppingCart = await this.getShoppingCart(orderData.user_id);
       const cartItems = await this.getCartItems(shoppingCart.id);
+
+      await this.checkAndLockInventory(cartItems, transaction);
+
       const order = await this.createOrderRecord(orderData, cartItems);
       await this.createOrderItems(order.id, cartItems, transaction);
+      await this.updateBookInventory(cartItems, transaction);
       await this.clearShoppingCart(shoppingCart.id);
 
       await transaction.commit();
@@ -87,11 +91,76 @@ class OrderService {
   }
 
   /**
-   * Clears the shopping cart and its items
+   * Clears the shopping items
    * @returns {Promise<void>}
    */
   private async clearShoppingCart(cartId: number): Promise<void> {
     await this.shoppingCartItems.destroy({ where: { shopping_cart_id: cartId } });
+  }
+
+  /**
+   * Checks inventory availability and locks books for update using pessimistic locking
+   * @param {any[]} cartItems - Array of cart items
+   * @param {any} transaction - Database transaction
+   * @returns {Promise<void>}
+   */
+  private async checkAndLockInventory(cartItems: any[], transaction: any): Promise<void> {
+    for (const item of cartItems) {
+
+      const book = await DB.Books.findByPk(item.book_id, {
+        lock: transaction.LOCK.UPDATE,
+        transaction,
+      });
+
+      if (!book) {
+        throw new Error(`Book with ID ${item.book_id} not found`);
+      }
+
+      if (book.stock_quantity < item.quantity) {
+        throw new Error(`Insufficient stock for book "${book.title}". Available: ${book.stock_quantity}, Requested: ${item.quantity}`);
+      }
+    }
+  }
+
+  /**
+   * Updates book inventory by decrementing quantities
+   * @param {any[]} cartItems - Array of cart items
+   * @param {any} transaction - Database transaction
+   * @returns {Promise<void>}
+   */
+  private async updateBookInventory(cartItems: any[], transaction: any): Promise<void> {
+    for (const item of cartItems) {
+      await DB.Books.decrement('stock_quantity', {
+        by: item.quantity,
+        where: { id: item.book_id },
+        transaction,
+      });
+    }
+  }
+
+  /**
+   * Gets order history for a user
+   * @param {number} userId - The user ID
+   * @returns {Promise<Order[]>} Array of orders with their items
+   */
+  public async getOrderHistory(userId: number): Promise<Order[]> {
+    const orders = await this.order.findAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: this.orderItems,
+          as: 'items',
+          include: [
+            {
+              model: DB.Books,
+              as: 'book',
+            },
+          ],
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+    return orders;
   }
 }
 

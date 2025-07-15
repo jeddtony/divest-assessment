@@ -20,4 +20,14 @@ export class OrderController {
       next(error);
     }
   };
+
+  public getOrderHistory = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = (req as any).user.id;
+      const orderHistory: Order[] = await this.orderService.getOrderHistory(userId);
+      res.status(200).json({ data: orderHistory, message: 'Order history retrieved' });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

@@ -10,7 +10,7 @@ export class ShoppingCartController {
     try {
       const userId = (req as any).user.id;
       const shoppingCartData: ShoppingCart = await this.shoppingCartService.getShoppingCart(userId);
-      res.status(200).json({ data: shoppingCartData, message: 'get' });
+      res.status(200).json({ data: shoppingCartData, message: 'List of items in shopping cart' });
     } catch (error) {
       next(error);
     }
@@ -21,7 +21,7 @@ export class ShoppingCartController {
       const userId = (req as any).user.id;
       const { book_id } = req.body;
       const addBookToShoppingCartData: ShoppingCart = await this.shoppingCartService.addBookToShoppingCart({ user_id: userId, book_id });
-      res.status(200).json({ data: addBookToShoppingCartData, message: 'added' });
+      res.status(200).json({ data: addBookToShoppingCartData, message: 'Added book to shopping cart' });
     } catch (error) {
       next(error);
     }
