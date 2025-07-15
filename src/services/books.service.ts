@@ -15,8 +15,29 @@ class BookService {
     return book;
   }
 
+  private async checkBookExists(title: string, author: string): Promise<Book> {
+    const existingBook = await this.books.findOne({
+      where: {
+        title,
+        author,
+      },
+    });
+    return existingBook;
+  }
+
   public async createBook(bookData: CreateBookDto): Promise<Book> {
-    const book = await this.books.create(bookData);
+    const existingBook = await this.checkBookExists(bookData.title, bookData.author);
+
+    if (existingBook) {
+      throw new Error(`A book with title "${bookData.title}" by "${bookData.author}" already exists`);
+    }
+
+    const bookToCreate = {
+      ...bookData,
+      is_available: bookData.stock_quantity > 0,
+    };
+
+    const book = await this.books.create(bookToCreate);
     return book;
   }
 
