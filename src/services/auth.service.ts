@@ -18,6 +18,7 @@ const createToken = (user: User): TokenData => {
 const createCookie = (tokenData: TokenData): string => {
   return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn};`;
 }
+
 @Service()
 export class AuthService {
   public async signup(userData: CreateUserDto): Promise<User> {
@@ -31,11 +32,11 @@ export class AuthService {
   }
 
   public async login(userData: CreateUserDto): Promise<{ cookie: string; findUser: User }> {
-    const findUser: User = await DB.Users.findOne({ where: { email: userData.email } });
+    const findUser: User = await DB.Users.scope('withPassword').findOne({ where: { email: userData.email } });
     if (!findUser) throw new HttpException(409, `This email ${userData.email} was not found`);
 
     const isPasswordMatching: boolean = await compare(userData.password, findUser.password);
-    if (!isPasswordMatching) throw new HttpException(409, "Password not matching");
+    if (!isPasswordMatching) throw new HttpException(409, "Login credentials are not valid");
 
     const tokenData = createToken(findUser);
     const cookie = createCookie(tokenData);
@@ -44,7 +45,7 @@ export class AuthService {
   }
 
   public async logout(userData: User): Promise<User> {
-    const findUser: User = await DB.Users.findOne({ where: { email: userData.email, password: userData.password } });
+    const findUser: User = await DB.Users.findOne({ where: { email: userData.email } });
     if (!findUser) throw new HttpException(409, "User doesn't exist");
 
     return findUser;

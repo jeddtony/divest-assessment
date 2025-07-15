@@ -20,7 +20,7 @@ export class UserService {
   }
 
   public async createUser(userData: CreateUserDto): Promise<User> {
-    const findUser: User = await DB.Users.findOne({ where: { email: userData.email } });
+    const findUser: User = await DB.Users.scope('withPassword').findOne({ where: { email: userData.email } });
     if (findUser) throw new HttpException(409, `This email ${userData.email} already exists`);
 
     const hashedPassword = await hash(userData.password, 10);

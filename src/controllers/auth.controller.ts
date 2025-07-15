@@ -13,7 +13,13 @@ export class AuthController {
       const userData: CreateUserDto = req.body;
       const signUpUserData: User = await this.auth.signup(userData);
 
-      res.status(201).json({ data: signUpUserData, message: 'signup' });
+      res.status(201).json({
+        data: {
+          email: signUpUserData.email,
+          created_at: signUpUserData.createdAt,
+        },
+        message: 'signup',
+      });
     } catch (error) {
       next(error);
     }
@@ -25,7 +31,13 @@ export class AuthController {
       const { cookie, findUser } = await this.auth.login(userData);
 
       res.setHeader('Set-Cookie', [cookie]);
-      res.status(200).json({ data: findUser, message: 'login' });
+      res.status(200).json({
+        data: {
+          email: findUser.email,
+          created_at: findUser.createdAt,
+        },
+        message: 'Login successful',
+      });
     } catch (error) {
       next(error);
     }
