@@ -26,6 +26,7 @@ export default function (sequelize: Sequelize): typeof OrderModel {
       order_date: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: new Date(),
       },
       total_amount: {
         type: DataTypes.FLOAT,
@@ -34,6 +35,7 @@ export default function (sequelize: Sequelize): typeof OrderModel {
       status: {
         type: DataTypes.STRING,
         allowNull: false,
+        defaultValue: 'pending',
       },
     },
     {

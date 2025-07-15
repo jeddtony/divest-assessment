@@ -1,11 +1,13 @@
 import { Sequelize, DataTypes, Model } from 'sequelize';
 import { ShoppingCartItems } from '@interfaces/shoppingCartItems.interface';
+import { Book } from '@interfaces/books.interface';
 
 export class ShoppingCartItemsModel extends Model<ShoppingCartItems> implements ShoppingCartItems {
   public id: number;
   public shopping_cart_id: number;
   public book_id: number;
   public quantity: number;
+  public book?: Book;
   public createdAt!: Date;
   public updatedAt!: Date;
 }

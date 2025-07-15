@@ -6,11 +6,6 @@ class ShoppingCartService {
   public shoppingCart = DB.ShoppingCart;
   public shoppingCartItems = DB.ShoppingCartItems;
 
-  public async createShoppingCart(shoppingCartData: CreateShoppingCartDto): Promise<ShoppingCart> {
-    const shoppingCart = await this.shoppingCart.create(shoppingCartData);
-    return shoppingCart;
-  }
-
   public async getShoppingCart(userId: number): Promise<ShoppingCart> {
     const shoppingCart = await this.shoppingCart.findOne({
       where: { user_id: userId },
