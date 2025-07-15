@@ -1,24 +1,25 @@
 import { Sequelize, DataTypes, Model } from 'sequelize';
-import { ShoppingCartItems } from '@interfaces/shoppingCartItems.interface';
+import { OrderItems } from '@interfaces/orderItems.interface';
 
-export class ShoppingCartItemsModel extends Model<ShoppingCartItems> implements ShoppingCartItems {
+export class OrderItemsModel extends Model<OrderItems> implements OrderItems {
   public id: number;
-  public shopping_cart_id: number;
+  public order_id: number;
   public book_id: number;
   public quantity: number;
-  public createdAt!: Date;
-  public updatedAt!: Date;
+  public price_at_purchase: number;
+  public created_at?: Date;
+  public updated_at?: Date;
 }
 
-export default function (sequelize: Sequelize): typeof ShoppingCartItemsModel {
-  ShoppingCartItemsModel.init(
+export default function (sequelize: Sequelize): typeof OrderItemsModel {
+  OrderItemsModel.init(
     {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
       },
-      shopping_cart_id: {
+      order_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
@@ -30,12 +31,16 @@ export default function (sequelize: Sequelize): typeof ShoppingCartItemsModel {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      price_at_purchase: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+      },
     },
     {
-      tableName: 'shopping_cart_items',
+      tableName: 'order_items',
       sequelize,
     },
   );
 
-  return ShoppingCartItemsModel;
+  return OrderItemsModel;
 }
