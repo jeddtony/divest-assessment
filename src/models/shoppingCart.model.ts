@@ -19,6 +19,12 @@ export default function (sequelize: Sequelize): typeof ShoppingCartModel {
       user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
     },
     {

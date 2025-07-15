@@ -22,6 +22,12 @@ export default function (sequelize: Sequelize): typeof OrderModel {
       user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       order_date: {
         type: DataTypes.DATE,

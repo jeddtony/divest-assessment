@@ -17,7 +17,7 @@ export class AuthController {
         data: {
           email: signUpUserData.email,
         },
-        message: 'signup',
+        message: 'Registered successfully',
       });
     } catch (error) {
       next(error);
@@ -47,7 +47,7 @@ export class AuthController {
       const logOutUserData: User = await this.auth.logout(userData);
 
       res.setHeader('Set-Cookie', ['Authorization=; Max-age=0']);
-      res.status(200).json({ data: logOutUserData, message: 'logout' });
+      res.status(200).json({ data: logOutUserData, message: 'Logged out successfully' });
     } catch (error) {
       next(error);
     }

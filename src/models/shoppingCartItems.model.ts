@@ -23,10 +23,22 @@ export default function (sequelize: Sequelize): typeof ShoppingCartItemsModel {
       shopping_cart_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'shopping_carts',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       book_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'books',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       quantity: {
         type: DataTypes.INTEGER,

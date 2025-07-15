@@ -44,9 +44,15 @@ const Transaction = TransactionModel(sequelize);
 
 // Model relationships are listed here
 Users.hasOne(ShoppingCart, { foreignKey: 'user_id', sourceKey: 'id' });
+Users.hasMany(Order, { foreignKey: 'user_id', sourceKey: 'id' });
+Users.hasMany(Transaction, { foreignKey: 'user_id', sourceKey: 'id' });
 ShoppingCart.belongsTo(Users, { foreignKey: 'user_id', targetKey: 'id' });
+Order.belongsTo(Users, { foreignKey: 'user_id', targetKey: 'id' });
+Transaction.belongsTo(Users, { foreignKey: 'user_id', targetKey: 'id' });
 ShoppingCart.hasMany(ShoppingCartItems, { foreignKey: 'shopping_cart_id', sourceKey: 'id', as: 'items' });
 ShoppingCartItems.belongsTo(ShoppingCart, { foreignKey: 'shopping_cart_id', targetKey: 'id', as: 'shoppingCart' });
+Books.hasMany(ShoppingCartItems, { foreignKey: 'book_id', sourceKey: 'id' });
+Books.hasMany(OrderItems, { foreignKey: 'book_id', sourceKey: 'id' });
 ShoppingCartItems.belongsTo(Books, { foreignKey: 'book_id', targetKey: 'id', as: 'book' });
 Order.hasMany(OrderItems, { foreignKey: 'order_id', sourceKey: 'id', as: 'items' });
 OrderItems.belongsTo(Order, { foreignKey: 'order_id', targetKey: 'id', as: 'order' });

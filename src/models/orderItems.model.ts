@@ -22,10 +22,22 @@ export default function (sequelize: Sequelize): typeof OrderItemsModel {
       order_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'orders',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       book_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'books',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       quantity: {
         type: DataTypes.INTEGER,
