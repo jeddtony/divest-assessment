@@ -6,6 +6,7 @@ import ShoppingCartModel from '@models/shoppingCart.model';
 import ShoppingCartItemsModel from '@models/shoppingCartItems.model';
 import OrderModel from '@models/order.model';
 import OrderItemsModel from '@models/orderItems.model';
+import TransactionModel from '@models/transaction.model';
 import { logger } from '@utils/logger';
 
 const sequelize = new Sequelize.Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
@@ -39,6 +40,7 @@ const ShoppingCart = ShoppingCartModel(sequelize);
 const ShoppingCartItems = ShoppingCartItemsModel(sequelize);
 const Order = OrderModel(sequelize);
 const OrderItems = OrderItemsModel(sequelize);
+const Transaction = TransactionModel(sequelize);
 
 // Model relationships are listed here
 Users.hasOne(ShoppingCart, { foreignKey: 'user_id', sourceKey: 'id' });
@@ -48,6 +50,9 @@ ShoppingCartItems.belongsTo(ShoppingCart, { foreignKey: 'shopping_cart_id', targ
 ShoppingCartItems.belongsTo(Books, { foreignKey: 'book_id', targetKey: 'id', as: 'book' });
 Order.hasMany(OrderItems, { foreignKey: 'order_id', sourceKey: 'id', as: 'items' });
 OrderItems.belongsTo(Order, { foreignKey: 'order_id', targetKey: 'id', as: 'order' });
+OrderItems.belongsTo(Books, { foreignKey: 'book_id', targetKey: 'id', as: 'book' });
+Transaction.belongsTo(Order, { foreignKey: 'order_id', targetKey: 'id', as: 'order' });
+Order.hasOne(Transaction, { foreignKey: 'order_id', sourceKey: 'id', as: 'transaction' });
 
 export const DB = {
   Users,
@@ -56,6 +61,7 @@ export const DB = {
   ShoppingCartItems,
   Order,
   OrderItems,
+  Transaction,
   sequelize,
   Sequelize,
 };
