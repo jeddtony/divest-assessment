@@ -2,6 +2,8 @@ import Sequelize from 'sequelize';
 import { NODE_ENV, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_DATABASE } from '@config';
 import UserModel from '@models/users.model';
 import BookModel from '@models/books.model';
+import ShoppingCartModel from '@models/shoppingCart.model';
+import ShoppingCartItemsModel from '@models/shoppingCartItems.model';
 import { logger } from '@utils/logger';
 
 const sequelize = new Sequelize.Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
@@ -28,9 +30,24 @@ const sequelize = new Sequelize.Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
 
 sequelize.authenticate();
 
+// Initialize models
+const Users = UserModel(sequelize);
+const Books = BookModel(sequelize);
+const ShoppingCart = ShoppingCartModel(sequelize);
+const ShoppingCartItems = ShoppingCartItemsModel(sequelize);
+
+// Model relationships are listed here
+Users.hasOne(ShoppingCart, { foreignKey: 'user_id', sourceKey: 'id' });
+ShoppingCart.belongsTo(Users, { foreignKey: 'user_id', targetKey: 'id' });
+ShoppingCart.hasMany(ShoppingCartItems, { foreignKey: 'shopping_cart_id', sourceKey: 'id', as: 'items' });
+ShoppingCartItems.belongsTo(ShoppingCart, { foreignKey: 'shopping_cart_id', targetKey: 'id', as: 'shoppingCart' });
+ShoppingCartItems.belongsTo(Books, { foreignKey: 'book_id', targetKey: 'id' });
+
 export const DB = {
-  Users: UserModel(sequelize),
-  Books: BookModel(sequelize),
-  sequelize, // connection instance (RAW queries)
-  Sequelize, // library
+  Users,
+  Books,
+  ShoppingCart,
+  ShoppingCartItems,
+  sequelize,
+  Sequelize,
 };
