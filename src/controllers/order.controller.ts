@@ -30,4 +30,21 @@ export class OrderController {
       next(error);
     }
   };
+
+  public markOrderAsPaid = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = (req as any).user.id;
+      const orderId = Number(req.params.id);
+
+      if (isNaN(orderId)) {
+        res.status(400).json({ message: 'Invalid order ID' });
+        return;
+      }
+
+      const updatedOrder: Order = await this.orderService.markOrderAsPaid(orderId, userId);
+      res.status(200).json({ data: updatedOrder, message: 'Order marked as paid successfully' });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

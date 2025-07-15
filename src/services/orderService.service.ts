@@ -106,7 +106,6 @@ class OrderService {
    */
   private async checkAndLockInventory(cartItems: any[], transaction: any): Promise<void> {
     for (const item of cartItems) {
-
       const book = await DB.Books.findByPk(item.book_id, {
         lock: transaction.LOCK.UPDATE,
         transaction,
@@ -161,6 +160,74 @@ class OrderService {
       order: [['createdAt', 'DESC']],
     });
     return orders;
+  }
+
+  /**
+   * Marks an order as paid and creates a transaction record
+   * @param {number} orderId - The order ID
+   * @param {number} userId - The user ID
+   * @returns {Promise<Order>} The updated order
+   */
+  public async markOrderAsPaid(orderId: number, userId: number): Promise<Order> {
+    const transaction = await DB.sequelize.transaction();
+
+    try {
+      // Find the order and lock it for update
+      const order = await this.order.findOne({
+        where: { id: orderId, user_id: userId },
+        lock: transaction.LOCK.UPDATE,
+        transaction,
+      });
+
+      if (!order) {
+        throw new Error('Order not found');
+      }
+
+      if (order.status === 'paid') {
+        throw new Error('Order is already marked as paid');
+      }
+
+      // Update order status to paid
+      await this.order.update({ status: 'paid' }, { where: { id: orderId }, transaction });
+
+      // Create transaction record
+      const referenceId = `TXN-${Date.now()}-${orderId}`;
+      await DB.Transaction.create(
+        {
+          user_id: userId,
+          order_id: orderId,
+          reference_id: referenceId,
+          amount: order.total_amount,
+          status: 'successful',
+        },
+        { transaction },
+      );
+
+      await transaction.commit();
+
+      // Return updated order
+      return await this.order.findByPk(orderId, {
+        include: [
+          {
+            model: this.orderItems,
+            as: 'items',
+            include: [
+              {
+                model: DB.Books,
+                as: 'book',
+              },
+            ],
+          },
+          {
+            model: DB.Transaction,
+            as: 'transaction',
+          },
+        ],
+      });
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 }
 
