@@ -2,12 +2,21 @@ import { getMockedDB } from './utils/test-db-mock';
 import bcrypt from 'bcrypt';
 import { Sequelize } from 'sequelize';
 import request from 'supertest';
-import { App } from '@/app';
 import { CreateUserDto } from '@dtos/users.dto';
 import { AuthRoute } from '@routes/auth.route';
+import { TestServer } from './utils/test-server';
+
+let testServer: TestServer;
+
+beforeAll(async () => {
+  testServer = new TestServer([new AuthRoute()]);
+  await testServer.start();
+});
 
 afterAll(async () => {
-  await new Promise<void>(resolve => setTimeout(() => resolve(), 500));
+  if (testServer) {
+    await testServer.stop();
+  }
 });
 
 describe('Testing Auth', () => {
@@ -18,7 +27,6 @@ describe('Testing Auth', () => {
         password: 'q1w2e3r4!',
       };
 
-      const authRoute = new AuthRoute();
       const DB = getMockedDB();
 
       DB.Users.findOne = jest.fn().mockReturnValue(null);
@@ -29,8 +37,7 @@ describe('Testing Auth', () => {
       });
 
       (Sequelize as any).authenticate = jest.fn();
-      const app = new App([authRoute]);
-      return request(app.getServer()).post('/signup').send(userData).expect(201);
+      return request(testServer.getServer()).post('/signup').send(userData).expect(201);
     });
   });
 
@@ -41,7 +48,6 @@ describe('Testing Auth', () => {
         password: 'q1w2e3r4!',
       };
 
-      const authRoute = new AuthRoute();
       const DB = getMockedDB();
 
       DB.Users.findOne = jest.fn().mockReturnValue({
@@ -51,8 +57,7 @@ describe('Testing Auth', () => {
       });
 
       (Sequelize as any).authenticate = jest.fn();
-      const app = new App([authRoute]);
-      return request(app.getServer())
+      return request(testServer.getServer())
         .post('/login')
         .send(userData)
         .expect('Set-Cookie', /^Authorization=.+/);

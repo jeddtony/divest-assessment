@@ -1,22 +1,36 @@
 import { getMockedDB } from './utils/test-db-mock';
 import { Sequelize } from 'sequelize';
 import request from 'supertest';
-import { App } from '@/app';
 import { CreateBookDto } from '@dtos/books.dto';
 import { BooksRoute } from '@routes/books.route';
+import { TestServer } from './utils/test-server';
 
+// Mock the auth middleware to always pass
 jest.mock('@middlewares/auth.middleware', () => ({
   AuthMiddleware: (req: any, res: any, next: any) => next(),
 }));
 
+let testServer: TestServer;
+
+beforeAll(async () => {
+  testServer = new TestServer([new BooksRoute()]);
+  await testServer.start();
+}, 10000); // Increased timeout for server startup
+
 afterAll(async () => {
-  await new Promise<void>(resolve => setTimeout(() => resolve(), 500));
+  if (testServer) {
+    await testServer.stop();
+  }
+}, 10000); // Increased timeout for server shutdown
+
+// Clean up mocks after each test
+afterEach(() => {
+  jest.clearAllMocks();
 });
 
 describe('Testing Books', () => {
   describe('[GET] /books', () => {
     it('response findAll books', async () => {
-      const booksRoute = new BooksRoute();
       const DB = getMockedDB();
 
       DB.Books.findAll = jest.fn().mockReturnValue([
@@ -59,12 +73,12 @@ describe('Testing Books', () => {
       ]);
 
       (Sequelize as any).authenticate = jest.fn();
-      const app = new App([booksRoute]);
-      return request(app.getServer()).get(`${booksRoute.path}`).expect(200);
+      
+      const response = await request(testServer.getServer()).get('/books');
+      expect(response.status).toBe(200);
     });
 
     it('response findAll books with search by title', async () => {
-      const booksRoute = new BooksRoute();
       const DB = getMockedDB();
 
       DB.Books.findAll = jest.fn().mockReturnValue([
@@ -83,12 +97,12 @@ describe('Testing Books', () => {
       ]);
 
       (Sequelize as any).authenticate = jest.fn();
-      const app = new App([booksRoute]);
-      return request(app.getServer()).get(`${booksRoute.path}?title=lord`).expect(200);
+      
+      const response = await request(testServer.getServer()).get('/books?title=lord');
+      expect(response.status).toBe(200);
     });
 
     it('response findAll books with search by author', async () => {
-      const booksRoute = new BooksRoute();
       const DB = getMockedDB();
 
       DB.Books.findAll = jest.fn().mockReturnValue([
@@ -119,12 +133,12 @@ describe('Testing Books', () => {
       ]);
 
       (Sequelize as any).authenticate = jest.fn();
-      const app = new App([booksRoute]);
-      return request(app.getServer()).get(`${booksRoute.path}?author=tolkien`).expect(200);
+      
+      const response = await request(testServer.getServer()).get('/books?author=tolkien');
+      expect(response.status).toBe(200);
     });
 
     it('response findAll books with search by genre', async () => {
-      const booksRoute = new BooksRoute();
       const DB = getMockedDB();
 
       DB.Books.findAll = jest.fn().mockReturnValue([
@@ -155,8 +169,9 @@ describe('Testing Books', () => {
       ]);
 
       (Sequelize as any).authenticate = jest.fn();
-      const app = new App([booksRoute]);
-      return request(app.getServer()).get(`${booksRoute.path}?genre=fantasy`).expect(200);
+      
+      const response = await request(testServer.getServer()).get('/books?genre=fantasy');
+      expect(response.status).toBe(200);
     });
   });
 
@@ -171,28 +186,30 @@ describe('Testing Books', () => {
         description: 'A test book description',
       };
 
-      const booksRoute = new BooksRoute();
       const DB = getMockedDB();
+
+      // Mock that no existing book is found
+      DB.Books.findOne = jest.fn().mockReturnValue(null);
 
       DB.Books.create = jest.fn().mockReturnValue({
         id: 1,
         ...bookData,
+        is_available: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
       (Sequelize as any).authenticate = jest.fn();
-      const app = new App([booksRoute]);
-      return request(app.getServer()).post(`${booksRoute.path}`).send(bookData).expect(201);
+      
+      const response = await request(testServer.getServer()).post('/books').send(bookData);
+      expect(response.status).toBe(201);
     });
   });
-
 
   describe('[GET] /books/:id', () => {
     it('response findOne book', async () => {
       const bookId = 1;
 
-      const booksRoute = new BooksRoute();
       const DB = getMockedDB();
 
       DB.Books.findByPk = jest.fn().mockReturnValue({
@@ -209,8 +226,9 @@ describe('Testing Books', () => {
       });
 
       (Sequelize as any).authenticate = jest.fn();
-      const app = new App([booksRoute]);
-      return request(app.getServer()).get(`${booksRoute.path}/${bookId}`).expect(200);
+      
+      const response = await request(testServer.getServer()).get(`/books/${bookId}`);
+      expect(response.status).toBe(200);
     });
   });
 });

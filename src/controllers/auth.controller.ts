@@ -16,7 +16,6 @@ export class AuthController {
       res.status(201).json({
         data: {
           email: signUpUserData.email,
-          created_at: signUpUserData.createdAt,
         },
         message: 'signup',
       });
@@ -34,7 +33,6 @@ export class AuthController {
       res.status(200).json({
         data: {
           email: findUser.email,
-          created_at: findUser.createdAt,
         },
         message: 'Login successful',
       });
