@@ -1,5 +1,5 @@
 import { Sequelize, DataTypes, Model } from 'sequelize';
-import { Transaction } from '@interfaces/transaction.interface';
+import { Transaction, TransactionStatus } from '@interfaces/transaction.interface';
 
 export class TransactionModel extends Model<Transaction> implements Transaction {
   public id: number;
@@ -7,7 +7,7 @@ export class TransactionModel extends Model<Transaction> implements Transaction 
   public order_id: number;
   public reference_id: string;
   public amount: number;
-  public status: string;
+  public status: TransactionStatus;
   public created_at?: Date;
   public updated_at?: Date;
 }
@@ -37,8 +37,9 @@ export default function (sequelize: Sequelize): typeof TransactionModel {
         allowNull: false,
       },
       status: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM(...Object.values(TransactionStatus)),
         allowNull: false,
+        defaultValue: TransactionStatus.PENDING,
       },
     },
     {

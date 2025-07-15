@@ -1,7 +1,7 @@
-import { Order } from '@interfaces/order.interface';
-import { OrderItems } from '@interfaces/orderItems.interface';
+import { Order, OrderStatus } from '@interfaces/order.interface';
 import { DB } from '@database';
 import { CreateOrderDto } from '@dtos/order.dto';
+import { TransactionStatus } from '@interfaces/transaction.interface';
 
 class OrderService {
   public order = DB.Order;
@@ -100,8 +100,8 @@ class OrderService {
 
   /**
    * Checks inventory availability and locks books for update using pessimistic locking
-   * @param {any[]} cartItems - Array of cart items
-   * @param {any} transaction - Database transaction
+   * @param {any[]} cartItems
+   * @param {any} transaction
    * @returns {Promise<void>}
    */
   private async checkAndLockInventory(cartItems: any[], transaction: any): Promise<void> {
@@ -123,8 +123,8 @@ class OrderService {
 
   /**
    * Updates book inventory by decrementing quantities
-   * @param {any[]} cartItems - Array of cart items
-   * @param {any} transaction - Database transaction
+   * @param {any[]} cartItems
+   * @param {any} transaction
    * @returns {Promise<void>}
    */
   private async updateBookInventory(cartItems: any[], transaction: any): Promise<void> {
@@ -139,8 +139,8 @@ class OrderService {
 
   /**
    * Gets order history for a user
-   * @param {number} userId - The user ID
-   * @returns {Promise<Order[]>} Array of orders with their items
+   * @param {number} userId
+   * @returns {Promise<Order[]>}
    */
   public async getOrderHistory(userId: number): Promise<Order[]> {
     const orders = await this.order.findAll({
@@ -164,15 +164,14 @@ class OrderService {
 
   /**
    * Marks an order as paid and creates a transaction record
-   * @param {number} orderId - The order ID
-   * @param {number} userId - The user ID
-   * @returns {Promise<Order>} The updated order
+   * @param {number} orderId
+   * @param {number} userId
+   * @returns {Promise<Order>}
    */
   public async markOrderAsPaid(orderId: number, userId: number): Promise<Order> {
     const transaction = await DB.sequelize.transaction();
 
     try {
-      // Find the order and lock it for update
       const order = await this.order.findOne({
         where: { id: orderId, user_id: userId },
         lock: transaction.LOCK.UPDATE,
@@ -183,14 +182,12 @@ class OrderService {
         throw new Error('Order not found');
       }
 
-      if (order.status === 'paid') {
+      if (order.status === OrderStatus.PAID) {
         throw new Error('Order is already marked as paid');
       }
 
-      // Update order status to paid
-      await this.order.update({ status: 'paid' }, { where: { id: orderId }, transaction });
+      await this.order.update({ status: OrderStatus.PAID }, { where: { id: orderId }, transaction });
 
-      // Create transaction record
       const referenceId = `TXN-${Date.now()}-${orderId}`;
       await DB.Transaction.create(
         {
@@ -198,14 +195,13 @@ class OrderService {
           order_id: orderId,
           reference_id: referenceId,
           amount: order.total_amount,
-          status: 'successful',
+          status: TransactionStatus.SUCCESSFUL,
         },
         { transaction },
       );
 
       await transaction.commit();
 
-      // Return updated order
       return await this.order.findByPk(orderId, {
         include: [
           {
